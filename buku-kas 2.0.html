@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buku Kas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cover:#1F3B2C;
+    --cover-dark:#152A1F;
+    --paper:#EEF2E7;
+    --paper-line:#CFDAC4;
+    --paper-white:#FCFBF6;
+    --ink:#1C2430;
+    --ink-soft:#5B6570;
+    --debit:#A6342A;
+    --credit:#2F6B4F;
+    --brass:#B4903F;
+    --shadow: 0 14px 34px rgba(15,30,20,0.22);
+    --keperluan:#C79A1F;
+    --keperluan-bg:#FBF3D9;
+    --credit-bg:#E6F0E9;
+    --debit-bg:#F6E8E6;
+    --cat-jajan:#C97B4A;
+    --cat-transportasi:#4C6E8C;
+    --cat-keperluan:#E8B93F;
+    --cat-makanan:#5F7A4F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans', sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(ellipse at top, #2c4a38 0%, #0f1d15 70%);
+    min-height:100vh;
+    padding:28px 14px 60px;
+  }
+  .book{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    max-width:560px;
+    margin:0 auto;
+    background:var(--paper);
+    border-radius:6px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    padding-left:46px;
+    min-height:70vh;
+  }
+  .book::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0; width:46px;
+    background:linear-gradient(180deg, var(--cover) 0%, var(--cover-dark) 100%);
+  }
+  .book::after{
+    content:"";
+    position:absolute;
+    left:20px; top:0; bottom:0; width:6px;
+    background-image: radial-gradient(circle, var(--paper) 2.6px, transparent 2.7px);
+    background-size: 6px 34px;
+    background-repeat: repeat-y;
+    background-position: 0 22px;
+  }
+  .topbar{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:20px 22px 14px;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .topbar-brand{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.05rem;
+    letter-spacing:0.04em;
+    color:var(--cover);
+  }
+  .topbar-saldo{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  .page-content{
+    background-image: repeating-linear-gradient(to bottom, transparent 0 33px, var(--paper-line) 33px 34px);
+    padding: 26px 24px 34px;
+    flex:1 1 auto;
+  }
+  .screen-header{ margin-bottom:6px; }
+  .back-link{
+    background:none;
+    border:none;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.88rem;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:4px 0;
+  }
+  .back-link:hover{ color:var(--ink); }
+  h2.screen-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.5rem;
+    margin:6px 0 4px;
+    color:var(--ink);
+  }
+  .screen-desc, .step-label{
+    font-size:0.9rem;
+    color:var(--ink-soft);
+    margin:0 0 20px;
+  }
+  .step-label{
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-size:0.72rem;
+    font-weight:600;
+    color:var(--brass);
+  }
+  .field{ margin-bottom:18px; }
+  .field label{
+    display:block;
+    font-size:0.82rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    padding:12px 14px;
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1rem;
+    color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:2px solid var(--brass);
+    outline-offset:1px;
+  }
+  .field-error{
+    color:var(--debit);
+    font-size:0.8rem;
+    margin-top:6px;
+    display:none;
+  }
+  .field-error.show{ display:block; }
+  .primary-btn, .secondary-btn{
+    width:100%;
+    padding:14px 18px;
+    border-radius:4px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    cursor:pointer;
+    margin-top:6px;
+    border:none;
+  }
+  .primary-btn{
+    background:var(--cover);
+    color:var(--paper-white);
+  }
+  .primary-btn:hover{ background:var(--cover-dark); }
+  .secondary-btn{
+    background:transparent;
+    color:var(--cover);
+    border:1px solid var(--cover);
+    margin-top:12px;
+  }
+  .secondary-btn:hover{ background:rgba(31,59,44,0.06); }
+
+  /* Main menu */
+  .stamp-wrap{ display:flex; justify-content:center; margin:18px 0 30px; }
+  .stamp{
+    width:168px; height:168px;
+    border-radius:50%;
+    border:3px double var(--credit);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    transform:rotate(-6deg);
+    color:var(--credit);
+    text-align:center;
+    padding:10px;
+  }
+  .stamp-label{
+    font-size:0.7rem;
+    letter-spacing:0.18em;
+    font-weight:600;
+  }
+  .stamp-amount{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.28rem;
+    margin-top:6px;
+    word-break:break-word;
+  }
+  .menu-list{ display:flex; flex-direction:column; gap:12px; }
+  .menu-btn{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    width:100%;
+    text-align:left;
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-left:4px solid var(--brass);
+    border-radius:4px;
+    padding:16px 16px;
+    cursor:pointer;
+  }
+  .menu-btn:hover{ background:#fff; border-left-color:var(--cover); }
+  .menu-icon{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.3rem;
+    color:var(--cover);
+    width:28px; text-align:center;
+    flex-shrink:0;
+  }
+  .menu-text strong{
+    display:block;
+    font-size:1rem;
+    color:var(--ink);
+    font-family:'Fraunces', serif;
+    font-weight:600;
+  }
+  .menu-text small{
+    display:block;
+    font-size:0.8rem;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  /* Confirmation */
+  .confirm-card{
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    padding:18px 18px;
+    margin-bottom:8px;
+  }
+  .confirm-card p{ margin:4px 0; }
+  .confirm-date{ font-size:0.85rem; color:var(--ink-soft); }
+  .confirm-ket{ font-size:1rem; font-weight:600; }
+  .confirm-amount{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1.15rem;
+    color:var(--debit);
+    font-weight:600;
+  }
+  .confirm-saldo{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.9rem;
+    color:var(--ink-soft);
+    border-top:1px dashed var(--paper-line);
+    padding-top:10px;
+    margin-top:10px !important;
+  }
+
+  /* Table */
+  .ledger-table-wrap{
+    overflow-x:auto;
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+  }
+  table.ledger{
+    width:100%;
+    border-collapse:collapse;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.82rem;
+    min-width:520px;
+  }
+  table.ledger th{
+    background:var(--cover);
+    color:var(--paper-white);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    text-align:left;
+    padding:10px 10px;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    white-space:nowrap;
+  }
+  table.ledger td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--paper-line);
+    white-space:nowrap;
+  }
+  table.ledger td.ket{ white-space:normal; min-width:130px; }
+  table.ledger td.num{ text-align:right; }
+  table.ledger tr.row-saldo td.num.nominal{ color:var(--ink-soft); }
+  table.ledger tr.row-pengeluaran td.num.nominal{ color:var(--debit); }
+  table.ledger td.saldo-col{ font-weight:600; }
+  table.ledger tr.row-saldo{ background:var(--credit-bg); border-left:3px solid var(--credit); }
+  table.ledger tr.row-pengeluaran{ background:var(--debit-bg); border-left:3px solid var(--debit); }
+  table.ledger tr.row-keperluan{ background:var(--keperluan-bg); border-left:3px solid var(--keperluan); }
+  table.ledger tr.row-keperluan td.num.nominal{ color:var(--keperluan); }
+  table.ledger td.aksi-col{ white-space:nowrap; }
+  .row-aksi{ display:flex; gap:6px; }
+  .row-aksi button{
+    padding:5px 9px;
+    border-radius:3px;
+    font-size:0.72rem;
+    font-weight:600;
+    cursor:pointer;
+    border:1px solid var(--paper-line);
+    background:var(--paper-white);
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .row-aksi .edit-btn{ color:var(--cover); }
+  .row-aksi .edit-btn:hover{ background:#fff; border-color:var(--cover); }
+  .row-aksi .del-btn{ color:var(--debit); }
+  .row-aksi .del-btn:hover{ background:#fff; border-color:var(--debit); }
+  .kategori-badge{
+    display:inline-block;
+    font-size:0.68rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    padding:3px 7px;
+    border-radius:3px;
+    white-space:nowrap;
+  }
+  .kategori-badge.jajan{ background:rgba(201,123,74,0.16); color:var(--cat-jajan); }
+  .kategori-badge.transportasi{ background:rgba(76,110,140,0.16); color:var(--cat-transportasi); }
+  .kategori-badge.keperluan{ background:rgba(232,185,63,0.22); color:#8A6B15; }
+  .kategori-badge.makanan_utama{ background:rgba(95,122,79,0.16); color:var(--cat-makanan); }
+  .ledger-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:12px;
+    font-size:0.76rem;
+    color:var(--ink-soft);
+  }
+  .ledger-legend span{ display:flex; align-items:center; gap:5px; }
+  .ledger-legend i{
+    width:10px; height:10px;
+    border-radius:2px;
+    display:inline-block;
+  }
+  .ledger-legend i.dot-saldo{ background:var(--credit); }
+  .ledger-legend i.dot-pengeluaran{ background:var(--debit); }
+  .ledger-legend i.dot-keperluan{ background:var(--keperluan); }
+  .search-field{ margin-bottom:14px; position:relative; }
+  .search-field input{
+    width:100%;
+    padding:11px 14px;
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.9rem;
+    color:var(--ink);
+  }
+  .search-field input:focus{ outline:2px solid var(--brass); outline-offset:1px; }
+  .search-empty{
+    padding:24px 16px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:0.85rem;
+  }
+  .empty-state{
+    padding:32px 20px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+  }
+  .reset-link{
+    display:inline-block;
+    margin-top:16px;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    background:none;
+    border:none;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+  .table-footer{ text-align:center; }
+
+  /* Alokasi Dana */
+  .bulan-select-wrap{ margin-bottom:20px; }
+  .pie-wrap{ display:flex; justify-content:center; margin:10px 0 22px; }
+  .pie-chart{
+    width:200px; height:200px;
+    border-radius:50%;
+    box-shadow:0 4px 14px rgba(15,30,20,0.18);
+    position:relative;
+    flex-shrink:0;
+  }
+  .pie-chart::after{
+    content:"";
+    position:absolute;
+    inset:26%;
+    background:var(--paper);
+    border-radius:50%;
+    box-shadow:inset 0 2px 6px rgba(15,30,20,0.12);
+  }
+  .pie-total{
+    position:absolute;
+    inset:26%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    z-index:1;
+    text-align:center;
+    padding:6px;
+  }
+  .pie-total small{ font-size:0.62rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.05em; }
+  .pie-total strong{ font-family:'IBM Plex Mono', monospace; font-size:0.78rem; color:var(--ink); margin-top:3px; word-break:break-word; }
+  .alokasi-legend{ display:flex; flex-direction:column; gap:10px; }
+  .alokasi-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    padding:11px 14px;
+  }
+  .alokasi-item-label{ display:flex; align-items:center; gap:9px; }
+  .alokasi-dot{ width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+  .alokasi-item-name{ font-size:0.88rem; font-weight:600; color:var(--ink); }
+  .alokasi-item-values{ text-align:right; }
+  .alokasi-item-nominal{ font-family:'IBM Plex Mono', monospace; font-size:0.84rem; color:var(--ink); }
+  .alokasi-item-pct{ font-size:0.74rem; color:var(--ink-soft); }
+  .alokasi-note{ font-size:0.78rem; color:var(--ink-soft); margin-top:16px; line-height:1.5; }
+
+  /* Notifikasi & keperluan */
+  .notif-banner{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#FBF0D9;
+    border:1px solid var(--brass);
+    border-radius:4px;
+    padding:12px 14px;
+    margin-bottom:18px;
+    font-size:0.86rem;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .notif-banner:hover{ background:#F7E6BE; }
+  .notif-toggle{
+    width:100%;
+    background:none;
+    border:1px dashed var(--paper-line);
+    color:var(--ink-soft);
+    border-radius:4px;
+    padding:10px 12px;
+    font-size:0.78rem;
+    margin-top:16px;
+    cursor:pointer;
+  }
+  .notif-toggle:hover{ color:var(--cover); border-color:var(--cover); }
+  .keperluan-list{ display:flex; flex-direction:column; gap:12px; }
+  .keperluan-item{
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-left:4px solid var(--paper-line);
+    border-radius:4px;
+    padding:14px 16px;
+  }
+  .keperluan-item.due{ border-left-color:var(--brass); }
+  .keperluan-ket{ font-weight:600; margin:0 0 2px; }
+  .keperluan-meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    margin:0 0 4px;
+  }
+  .keperluan-flag{
+    display:inline-block;
+    font-size:0.72rem;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 8px;
+  }
+  .keperluan-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .keperluan-actions button{
+    flex:1 1 auto;
+    padding:9px 10px;
+    border-radius:4px;
+    font-size:0.8rem;
+    font-weight:600;
+    cursor:pointer;
+    border:1px solid var(--paper-line);
+    background:var(--paper);
+  }
+  .beli-btn{ background:var(--credit)!important; color:#fff!important; border-color:var(--credit)!important; }
+  .beli-btn:hover{ opacity:0.9; }
+  .ics-btn{ color:var(--cover); }
+  .ics-btn:hover{ background:#fff; }
+  .hapus-btn{ color:var(--debit); }
+  .hapus-btn:hover{ background:#fff; }
+
+  .watermark{
+    position:absolute;
+    right:5%;
+    bottom:64px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    color:var(--cover);
+    opacity:0.11;
+    transform:rotate(-7deg);
+    pointer-events:none;
+    user-select:none;
+    z-index:0;
+    white-space:nowrap;
+  }
+  .watermark-label{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:clamp(0.62rem, 2.1vw, 0.9rem);
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  .watermark-name{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:700;
+    font-size:clamp(2.2rem, 9vw, 3.6rem);
+    line-height:1;
+    margin-top:2px;
+  }
+  #app{ position:relative; z-index:1; display:flex; flex-direction:column; flex:1 1 auto; }
+  .site-footer{
+    position:relative;
+    z-index:1;
+    text-align:center;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.7rem;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    background:var(--paper);
+    border-top:1px solid var(--paper-line);
+    padding:10px 14px 14px;
+  }
+
+  /* Modal konfirmasi kustom (pengganti confirm() bawaan browser) */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(15,30,20,0.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding:20px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-card{
+    background:var(--paper-white);
+    border-radius:6px;
+    padding:22px 20px;
+    max-width:380px;
+    width:100%;
+    box-shadow:var(--shadow);
+  }
+  .modal-card p{ margin:0 0 18px; font-size:0.95rem; color:var(--ink); line-height:1.4; }
+  .modal-actions{ display:flex; gap:10px; }
+  .modal-actions button{
+    flex:1;
+    padding:11px;
+    border-radius:4px;
+    font-weight:600;
+    font-size:0.88rem;
+    cursor:pointer;
+    border:none;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .modal-btn-yes{ background:var(--cover); color:#fff; }
+  .modal-btn-yes:hover{ background:var(--cover-dark); }
+  .modal-btn-cancel{ background:transparent; border:1px solid var(--paper-line)!important; color:var(--ink-soft); }
+  .modal-btn-cancel:hover{ background:var(--paper); }
+</style>
+</head>
+<body>
+  <div class="book">
+    <div class="watermark" aria-hidden="true">
+      <span class="watermark-label">made by</span>
+      <span class="watermark-name">DFF</span>
+    </div>
+    <div id="app"></div>
+    <div class="site-footer">&copy; 2026 DFF Company. All rights reserved.</div>
+  </div>
+
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-card">
+      <p id="confirmModalMsg"></p>
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" onclick="hideConfirm()">Batal</button>
+        <button class="modal-btn-yes" onclick="confirmYes()">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let rows = [];
+let keperluan = [];
+let screen = 'loading';
+let draft = { hari:'', tanggal:'', bulan:'', keterangan:'', kategori:'', nominal:0 };
+let draftKeperluan = { keterangan:'', nominal:0, bulan:'', tahun:'' };
+let ready = false;
+let editingRowId = null;
+let editingKeperluanId = null;
+let perincianSearchQuery = '';
+let alokasiBulan = '';
+
+const HARI_LIST = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+const BULAN_LIST = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const KATEGORI_LIST = [
+  { value:'jajan', label:'Jajan' },
+  { value:'transportasi', label:'Transportasi' },
+  { value:'keperluan', label:'Keperluan' },
+  { value:'makanan_utama', label:'Makanan Utama' }
+];
+function kategoriLabel(val){
+  const found = KATEGORI_LIST.find(k=>k.value===val);
+  return found ? found.label : '&mdash;';
+}
+function genId(prefix){
+  return prefix + Date.now() + Math.random().toString(16).slice(2,7);
+}
+
+function formatRupiah(n){
+  const v = Number(n)||0;
+  return 'Rp' + new Intl.NumberFormat('id-ID').format(v);
+}
+function digitsOnly(str){ return (str||'').replace(/[^0-9]/g,''); }
+function formatCurrencyInput(el){
+  const raw = digitsOnly(el.value);
+  el.dataset.raw = raw;
+  el.value = raw ? new Intl.NumberFormat('id-ID').format(Number(raw)) : '';
+}
+function getRawNumber(el){ return Number(el.dataset.raw || digitsOnly(el.value) || 0); }
+function currentSaldo(){
+  if(rows.length===0) return 0;
+  return rows[rows.length-1].saldoSetelah;
+}
+
+const STORAGE_KEY = 'bukuKasRows';
+
+async function loadRows(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    rows = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Gagal memuat data', e);
+    rows = [];
+  }
+}
+async function saveRows(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+  }catch(e){
+    console.error('Gagal menyimpan data', e);
+    alert('Gagal menyimpan data. Mungkin penyimpanan browser penuh atau diblokir.');
+  }
+}
+
+const KEPERLUAN_KEY = 'bukuKasKeperluan';
+
+async function loadKeperluan(){
+  try{
+    const raw = localStorage.getItem(KEPERLUAN_KEY);
+    keperluan = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Gagal memuat data keperluan', e);
+    keperluan = [];
+  }
+}
+async function saveKeperluan(){
+  try{
+    localStorage.setItem(KEPERLUAN_KEY, JSON.stringify(keperluan));
+  }catch(e){
+    console.error('Gagal menyimpan data keperluan', e);
+    alert('Gagal menyimpan data. Mungkin penyimpanan browser penuh atau diblokir.');
+  }
+}
+
+/* Melengkapi data lama (sebelum fitur id/kategori/createdAt ada) supaya fitur edit,
+   hapus, pencarian, dan alokasi dana tetap berjalan pada data yang sudah tersimpan. */
+function migrateData(){
+  let changed = false;
+  rows.forEach((r,i)=>{
+    if(!r.id){ r.id = genId('r'); changed = true; }
+    if(!r.createdAt){ r.createdAt = i; changed = true; }
+    if(r.tipe==='pengeluaran' && typeof r.kategori === 'undefined'){ r.kategori = ''; changed = true; }
+  });
+  keperluan.forEach((k,i)=>{
+    if(!k.createdAt){ k.createdAt = i; changed = true; }
+  });
+  if(changed){ saveRows(); saveKeperluan(); }
+}
+
+/* Menghitung ulang saldo berjalan setiap baris sesuai urutan array (dipakai setelah edit/hapus) */
+function recalcSaldoAll(){
+  let saldo = 0;
+  rows.forEach(r=>{
+    if(r.tipe==='saldo') saldo += Number(r.nominal)||0;
+    else saldo -= Number(r.nominal)||0;
+    r.saldoSetelah = saldo;
+  });
+}
+
+/* ---------- Edit & hapus baris Perincian Dana (isi saldo / pengeluaran) ---------- */
+function editRow(id){
+  editingRowId = id;
+  goTo('editRow');
+}
+
+function submitEditRow(){
+  const row = rows.find(r=>r.id===editingRowId);
+  if(!row) return;
+  const nominalVal = getRawNumber(document.getElementById('editRowNominalInput'));
+  clearError('editRowError');
+  if(!nominalVal || nominalVal<=0){
+    showError('editRowError', 'Masukkan nominal lebih dari 0.');
+    return;
+  }
+  if(row.tipe==='saldo'){
+    row.nominal = nominalVal;
+  }else{
+    const hariVal = document.getElementById('editRowHariSelect').value;
+    const tanggalVal = Number(digitsOnly(document.getElementById('editRowTanggalInput').value));
+    const bulanVal = document.getElementById('editRowBulanSelect').value;
+    const keteranganVal = document.getElementById('editRowKeteranganInput').value.trim();
+    const kategoriVal = document.getElementById('editRowKategoriSelect').value;
+    if(!hariVal || !bulanVal || !tanggalVal || tanggalVal<1 || tanggalVal>31){
+      showError('editRowError', 'Lengkapi hari, tanggal (1-31), dan bulan.');
+      return;
+    }
+    if(!keteranganVal){
+      showError('editRowError', 'Tuliskan keterangan pengeluaran.');
+      return;
+    }
+    if(!kategoriVal){
+      showError('editRowError', 'Pilih kategori pengeluaran.');
+      return;
+    }
+    row.hari = hariVal;
+    row.tanggal = tanggalVal;
+    row.bulan = bulanVal;
+    row.keterangan = keteranganVal;
+    row.kategori = kategoriVal;
+    row.nominal = nominalVal;
+  }
+  recalcSaldoAll();
+  saveRows();
+  editingRowId = null;
+  goTo('perincian');
+}
+
+function deleteRow(id){
+  showConfirm('Hapus baris transaksi ini? Tindakan ini tidak bisa dibatalkan.', async () => {
+    rows = rows.filter(r=>r.id!==id);
+    recalcSaldoAll();
+    await saveRows();
+    goTo('perincian');
+  });
+}
+
+/* Info tanggal hari ini sesuai kalender device, dipetakan ke format HARI_LIST/BULAN_LIST */
+function getTodayInfo(){
+  const now = new Date();
+  const hariIdx = (now.getDay() + 6) % 7; /* JS: 0=Minggu -> geser jadi Senin=0 */
+  return {
+    hari: HARI_LIST[hariIdx],
+    tanggal: now.getDate(),
+    bulan: BULAN_LIST[now.getMonth()],
+    tahun: now.getFullYear()
+  };
+}
+function getTahunOptions(){
+  const start = new Date().getFullYear();
+  const arr = [];
+  for(let i=0;i<5;i++) arr.push(start+i);
+  return arr;
+}
+function dueKeperluanItems(){
+  const t = getTodayInfo();
+  return keperluan.filter(k => k.bulan === t.bulan && Number(k.tahun) === t.tahun);
+}
+
+/* ---------- Modal konfirmasi kustom (pengganti confirm() bawaan browser) ---------- */
+let pendingConfirmAction = null;
+function showConfirm(message, onYes){
+  pendingConfirmAction = onYes;
+  document.getElementById('confirmModalMsg').textContent = message;
+  document.getElementById('confirmModal').classList.add('show');
+}
+function hideConfirm(){
+  document.getElementById('confirmModal').classList.remove('show');
+  pendingConfirmAction = null;
+}
+function confirmYes(){
+  const action = pendingConfirmAction;
+  hideConfirm();
+  if(action) action();
+}
+
+function goTo(s){
+  screen = s;
+  render();
+  window.scrollTo(0,0);
+}
+
+function showError(id, msg){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function clearError(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('show');
+  el.textContent = '';
+}
+
+/* ---------- Isi Saldo ---------- */
+function submitIsiSaldo(){
+  const input = document.getElementById('isiSaldoInput');
+  const amount = getRawNumber(input);
+  if(!amount || amount<=0){
+    showError('isiSaldoError', 'Masukkan nominal lebih dari 0.');
+    return;
+  }
+  const newSaldo = currentSaldo() + amount;
+  rows.push({
+    id: genId('r'),
+    createdAt: Date.now(),
+    tipe:'saldo',
+    hari:'', tanggal:'', bulan:'',
+    keterangan:'Isi Saldo',
+    nominal: amount,
+    saldoSetelah: newSaldo
+  });
+  saveRows();
+  goTo('main');
+}
+
+/* ---------- Pengeluaran step 1: tanggal ---------- */
+function submitTanggal(){
+  const hari = document.getElementById('hariSelect').value;
+  const tanggalRaw = document.getElementById('tanggalInput').value;
+  const bulan = document.getElementById('bulanSelect').value;
+  const tanggal = Number(digitsOnly(tanggalRaw));
+  clearError('tanggalError');
+  if(!hari || !bulan || !tanggal || tanggal<1 || tanggal>31){
+    showError('tanggalError', 'Lengkapi hari, tanggal (1-31), dan bulan.');
+    return;
+  }
+  draft.hari = hari;
+  draft.tanggal = tanggal;
+  draft.bulan = bulan;
+  goTo('pengeluaranKeterangan');
+}
+
+/* ---------- Pengeluaran step 2: keterangan & kategori ---------- */
+function submitKeterangan(){
+  const val = document.getElementById('keteranganInput').value.trim();
+  const kategoriVal = document.getElementById('kategoriSelect').value;
+  clearError('keteranganError');
+  if(!val){
+    showError('keteranganError', 'Tuliskan keterangan pengeluaran.');
+    return;
+  }
+  if(!kategoriVal){
+    showError('keteranganError', 'Pilih kategori pengeluaran.');
+    return;
+  }
+  draft.keterangan = val;
+  draft.kategori = kategoriVal;
+  goTo('pengeluaranNominal');
+}
+
+/* ---------- Pengeluaran step 3: nominal ---------- */
+function submitNominal(){
+  const input = document.getElementById('nominalInput');
+  const amount = getRawNumber(input);
+  if(!amount || amount<=0){
+    showError('nominalError', 'Masukkan nominal lebih dari 0.');
+    return;
+  }
+  const newSaldo = currentSaldo() - amount;
+  draft.nominal = amount;
+  rows.push({
+    id: genId('r'),
+    createdAt: Date.now(),
+    tipe:'pengeluaran',
+    hari:draft.hari, tanggal:draft.tanggal, bulan:draft.bulan,
+    keterangan:draft.keterangan,
+    kategori:draft.kategori,
+    nominal: amount,
+    saldoSetelah: newSaldo
+  });
+  saveRows();
+  goTo('pengeluaranSelesai');
+}
+
+/* ---------- Barang Perlu Dibeli: step 1 keterangan ---------- */
+function submitKeperluanKeterangan(){
+  const val = document.getElementById('keperluanKetInput').value.trim();
+  if(!val){
+    showError('keperluanKetError', 'Tuliskan keperluan yang ingin dibeli.');
+    return;
+  }
+  draftKeperluan.keterangan = val;
+  goTo('keperluanNominal');
+}
+
+/* ---------- Barang Perlu Dibeli: step 2 nominal ---------- */
+function submitKeperluanNominal(){
+  const input = document.getElementById('keperluanNominalInput');
+  const amount = getRawNumber(input);
+  if(!amount || amount<=0){
+    showError('keperluanNominalError', 'Masukkan nominal lebih dari 0.');
+    return;
+  }
+  draftKeperluan.nominal = amount;
+  goTo('keperluanBulan');
+}
+
+/* ---------- Barang Perlu Dibeli: step 3 bulan & tahun ---------- */
+async function submitKeperluanBulan(){
+  const bulan = document.getElementById('keperluanBulanSelect').value;
+  const tahun = document.getElementById('keperluanTahunSelect').value;
+  clearError('keperluanBulanError');
+  if(!bulan || !tahun){
+    showError('keperluanBulanError', 'Pilih bulan dan tahun pembelian.');
+    return;
+  }
+  const item = {
+    id: genId('k'),
+    createdAt: Date.now(),
+    keterangan: draftKeperluan.keterangan,
+    nominal: draftKeperluan.nominal,
+    bulan: bulan,
+    tahun: Number(tahun)
+  };
+  keperluan.push(item);
+  await saveKeperluan();
+  draftKeperluan = { keterangan:'', nominal:0, bulan:'', tahun:'' };
+  goTo('keperluanSelesai');
+}
+
+/* ---------- List Keperluan: beli / hapus ---------- */
+function beliKeperluan(id){
+  const item = keperluan.find(k=>k.id===id);
+  if(!item) return;
+  showConfirm(`Beli "${item.keterangan}" seharga ${formatRupiah(item.nominal)}? Saldo akan otomatis terpotong.`, async () => {
+    const t = getTodayInfo();
+    const newSaldo = currentSaldo() - item.nominal;
+    rows.push({
+      id: genId('r'),
+      createdAt: Date.now(),
+      tipe:'pengeluaran',
+      hari:t.hari, tanggal:t.tanggal, bulan:item.bulan,
+      keterangan:item.keterangan,
+      kategori:'keperluan',
+      nominal:item.nominal,
+      saldoSetelah:newSaldo
+    });
+    await saveRows();
+    keperluan = keperluan.filter(k=>k.id!==id);
+    await saveKeperluan();
+    render();
+  });
+}
+
+function hapusKeperluan(id){
+  showConfirm('Hapus rencana keperluan ini? Tindakan ini tidak bisa dibatalkan.', async () => {
+    keperluan = keperluan.filter(k=>k.id!==id);
+    await saveKeperluan();
+    render();
+  });
+}
+
+/* ---------- Edit item List Keperluan ---------- */
+function editKeperluan(id){
+  editingKeperluanId = id;
+  goTo('editKeperluan');
+}
+
+function submitEditKeperluan(){
+  const item = keperluan.find(k=>k.id===editingKeperluanId);
+  if(!item) return;
+  const keteranganVal = document.getElementById('editKeperluanKetInput').value.trim();
+  const nominalVal = getRawNumber(document.getElementById('editKeperluanNominalInput'));
+  const bulanVal = document.getElementById('editKeperluanBulanSelect').value;
+  const tahunVal = document.getElementById('editKeperluanTahunSelect').value;
+  clearError('editKeperluanError');
+  if(!keteranganVal){
+    showError('editKeperluanError', 'Tuliskan keperluan yang ingin dibeli.');
+    return;
+  }
+  if(!nominalVal || nominalVal<=0){
+    showError('editKeperluanError', 'Masukkan nominal lebih dari 0.');
+    return;
+  }
+  if(!bulanVal || !tahunVal){
+    showError('editKeperluanError', 'Pilih bulan dan tahun pembelian.');
+    return;
+  }
+  item.keterangan = keteranganVal;
+  item.nominal = nominalVal;
+  item.bulan = bulanVal;
+  item.tahun = Number(tahunVal);
+  saveKeperluan();
+  editingKeperluanId = null;
+  goTo('listKeperluan');
+}
+
+/* ---------- Ekspor ke kalender device (.ics) ---------- */
+function downloadICS(id){
+  const item = keperluan.find(k=>k.id===id);
+  if(!item) return;
+  const monthIdx = BULAN_LIST.indexOf(item.bulan) + 1;
+  const mm = String(monthIdx).padStart(2,'0');
+  const dateStr = `${item.tahun}${mm}01`;
+  const uid = item.id + '@buku-kas';
+  const stamp = new Date().toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Buku Kas//ID',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${dateStr}`,
+    `SUMMARY:Keperluan: ${item.keterangan}`,
+    `DESCRIPTION:Rencana pembelian sebesar ${formatRupiah(item.nominal)}`,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+  const blob = new Blob([ics], {type:'text/calendar'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `keperluan-${item.keterangan.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- Notifikasi bulanan ---------- */
+function requestNotifPermission(){
+  if(typeof Notification === 'undefined'){
+    alert('Browser ini tidak mendukung notifikasi.');
+    return;
+  }
+  Notification.requestPermission().then(()=>{
+    checkMonthlyNotification();
+    render();
+  });
+}
+
+function checkMonthlyNotification(){
+  if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  const due = dueKeperluanItems();
+  if(due.length===0) return;
+  const t = getTodayInfo();
+  const flagKey = 'bukuKasNotifShown-' + t.bulan + t.tahun;
+  if(localStorage.getItem(flagKey)) return;
+  try{
+    new Notification('Keperluan bulan ini!', {
+      body: `${due.length} rencana pembelian jatuh tempo bulan ${t.bulan} ${t.tahun}.`
+    });
+  }catch(e){
+    console.error('Gagal menampilkan notifikasi', e);
+  }
+  localStorage.setItem(flagKey, '1');
+}
+
+function resetData(){
+  showConfirm('Hapus semua data buku kas (termasuk riwayat transaksi dan rencana keperluan)? Tindakan ini tidak bisa dibatalkan.', async () => {
+    rows = [];
+    keperluan = [];
+    await saveRows();
+    await saveKeperluan();
+    render();
+  });
+}
+
+/* ---------- Perincian Dana: gabungan data + pencarian ---------- */
+function getCombinedPerincian(){
+  const list = [];
+  rows.forEach(r=>{
+    list.push({
+      source:'row',
+      id:r.id,
+      sortKey:r.createdAt||0,
+      cls: r.tipe==='saldo' ? 'row-saldo' : 'row-pengeluaran',
+      tanggalLabel: r.tipe==='saldo' ? '&mdash;' : `${r.hari}, ${r.tanggal} ${r.bulan}`,
+      keterangan: r.keterangan,
+      kategoriLabel: r.tipe==='saldo' ? '&mdash;' : `<span class="kategori-badge ${r.kategori}">${kategoriLabel(r.kategori)}</span>`,
+      nominalLabel: r.tipe==='saldo' ? ('+ ' + formatRupiah(r.nominal)) : ('&minus; ' + formatRupiah(r.nominal)),
+      saldoLabel: formatRupiah(r.saldoSetelah),
+      searchText: (r.keterangan + ' ' + kategoriLabel(r.kategori) + ' ' + r.bulan).toLowerCase(),
+      actions: `<div class="row-aksi">
+          <button class="edit-btn" onclick="editRow('${r.id}')">Edit</button>
+          <button class="del-btn" onclick="deleteRow('${r.id}')">Hapus</button>
+        </div>`
+    });
+  });
+  keperluan.forEach(k=>{
+    list.push({
+      source:'keperluan',
+      id:k.id,
+      sortKey:k.createdAt||0,
+      cls:'row-keperluan',
+      tanggalLabel:`Rencana: ${k.bulan} ${k.tahun}`,
+      keterangan:k.keterangan,
+      kategoriLabel:`<span class="kategori-badge keperluan">Keperluan</span>`,
+      nominalLabel: '~ ' + formatRupiah(k.nominal),
+      saldoLabel: '&mdash;',
+      searchText: (k.keterangan + ' keperluan ' + k.bulan).toLowerCase(),
+      actions: `<div class="row-aksi">
+          <button class="edit-btn" onclick="editKeperluan('${k.id}')">Edit</button>
+          <button class="del-btn" onclick="hapusKeperluan('${k.id}')">Hapus</button>
+        </div>`
+    });
+  });
+  list.sort((a,b)=>a.sortKey-b.sortKey);
+  return list;
+}
+
+function renderPerincianTable(){
+  const container = document.getElementById('perincianTableContainer');
+  if(!container) return;
+  const all = getCombinedPerincian();
+  const q = perincianSearchQuery.trim().toLowerCase();
+  const filtered = q ? all.filter(item=>item.searchText.includes(q)) : all;
+  let html;
+  if(all.length===0){
+    html = `<div class="empty-state">Belum ada transaksi. Mulai dengan Isi Saldo atau Pengeluaran.</div>`;
+  }else if(filtered.length===0){
+    html = `<div class="search-empty">Tidak ada transaksi yang cocok dengan pencarian "${perincianSearchQuery}".</div>`;
+  }else{
+    const trs = filtered.map((item,i)=>`
+      <tr class="${item.cls}">
+        <td>${i+1}</td>
+        <td>${item.tanggalLabel}</td>
+        <td class="ket">${item.keterangan}</td>
+        <td>${item.kategoriLabel}</td>
+        <td class="num nominal">${item.nominalLabel}</td>
+        <td class="num saldo-col">${item.saldoLabel}</td>
+        <td class="aksi-col">${item.actions}</td>
+      </tr>
+    `).join('');
+    html = `
+      <div class="ledger-table-wrap">
+        <table class="ledger">
+          <thead><tr>
+            <th>No.</th><th>Hari/Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Nominal</th><th>Saldo</th><th>Aksi</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
+function onPerincianSearch(val){
+  perincianSearchQuery = val;
+  renderPerincianTable();
+}
+
+/* ---------- Alokasi Dana: agregasi per kategori & per bulan ---------- */
+/* Semua kategori (termasuk "Keperluan") dihitung dari pengeluaran yang sudah
+   direalisasikan (rows bertipe 'pengeluaran'). Baris kategori "Keperluan" bisa
+   berasal dari pencatatan manual, atau otomatis saat menekan tombol "Beli" pada
+   List Keperluan (saldo berkurang, item hilang dari List Keperluan, dan nominalnya
+   masuk ke kategori "Keperluan" di Alokasi Dana bulan tersebut). */
+function computeAlokasiTotals(bulan){
+  const totals = { jajan:0, transportasi:0, keperluan:0, makanan_utama:0 };
+  rows.forEach(r=>{
+    if(r.tipe==='pengeluaran' && r.bulan===bulan && totals.hasOwnProperty(r.kategori)){
+      totals[r.kategori] += Number(r.nominal)||0;
+    }
+  });
+  return totals;
+}
+
+/* ---------- Screens ---------- */
+function screenMain(){
+  const due = dueKeperluanItems();
+  const banner = due.length>0 ? `
+      <div class="notif-banner" onclick="goTo('listKeperluan')">
+        <span>&#128276;</span>
+        <span>Keperluan bulan ini! ${due.length} rencana pembelian menunggu.</span>
+      </div>
+  ` : '';
+  const notifAvailable = (typeof Notification !== 'undefined');
+  const notifBtn = (notifAvailable && Notification.permission === 'default') ? `
+      <button class="notif-toggle" onclick="requestNotifPermission()">&#128276; Aktifkan notifikasi keperluan bulanan</button>
+  ` : '';
+  return `
+    <div class="topbar">
+      <span class="topbar-brand">Buku Kas</span>
+    </div>
+    <div class="page-content">
+      ${banner}
+      <div class="stamp-wrap">
+        <div class="stamp">
+          <span class="stamp-label">SALDO</span>
+          <span class="stamp-amount">${formatRupiah(currentSaldo())}</span>
+        </div>
+      </div>
+      <div class="menu-list">
+        <button class="menu-btn" onclick="goTo('isiSaldo')">
+          <span class="menu-icon">+</span>
+          <span class="menu-text"><strong>Isi Saldo</strong><small>Tambah dana ke saldo</small></span>
+        </button>
+        <button class="menu-btn" onclick="goTo('pengeluaranTanggal')">
+          <span class="menu-icon">&minus;</span>
+          <span class="menu-text"><strong>Pengeluaran</strong><small>Catat dana keluar</small></span>
+        </button>
+        <button class="menu-btn" onclick="goTo('keperluanKeterangan')">
+          <span class="menu-icon">&#128722;</span>
+          <span class="menu-text"><strong>Barang yang Perlu Dibeli</strong><small>Rencanakan pembelian mendatang</small></span>
+        </button>
+        <button class="menu-btn" onclick="goTo('listKeperluan')">
+          <span class="menu-icon">&#128203;</span>
+          <span class="menu-text"><strong>List Keperluan</strong><small>${due.length>0 ? due.length+' keperluan bulan ini' : 'Lihat rencana pembelian'}</small></span>
+        </button>
+        <button class="menu-btn" onclick="goTo('perincian')">
+          <span class="menu-icon">&equiv;</span>
+          <span class="menu-text"><strong>Perincian Dana</strong><small>Lihat seluruh riwayat</small></span>
+        </button>
+        <button class="menu-btn" onclick="goTo('alokasiDana')">
+          <span class="menu-icon">&#9673;</span>
+          <span class="menu-text"><strong>Alokasi Dana</strong><small>Grafik pengeluaran per kategori, per bulan</small></span>
+        </button>
+      </div>
+      ${notifBtn}
+    </div>
+  `;
+}
+
+function screenIsiSaldo(){
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('main')">&lsaquo; Menu Utama</button></div>
+      <h2 class="screen-title">Isi Saldo</h2>
+      <p class="screen-desc">Masukkan jumlah dana yang ingin ditambahkan ke saldo.</p>
+      <div class="field">
+        <label>Nominal (Rp)</label>
+        <input id="isiSaldoInput" type="text" inputmode="numeric" placeholder="0"
+          oninput="formatCurrencyInput(this)"
+          onkeydown="if(event.key==='Enter') submitIsiSaldo()">
+        <div class="field-error" id="isiSaldoError"></div>
+      </div>
+      <button class="primary-btn" onclick="submitIsiSaldo()">Selesai</button>
+    </div>
+  `;
+}
+
+function screenPengeluaranTanggal(){
+  const hariOpts = HARI_LIST.map(h=>`<option value="${h}" ${draft.hari===h?'selected':''}>${h}</option>`).join('');
+  const bulanOpts = BULAN_LIST.map(b=>`<option value="${b}" ${draft.bulan===b?'selected':''}>${b}</option>`).join('');
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('main')">&lsaquo; Menu Utama</button></div>
+      <h2 class="screen-title">Pengeluaran</h2>
+      <p class="step-label">Langkah 1 dari 3 &middot; Tanggal</p>
+      <div class="field">
+        <label>Hari</label>
+        <select id="hariSelect"><option value="">Pilih hari</option>${hariOpts}</select>
+      </div>
+      <div class="field">
+        <label>Tanggal</label>
+        <input id="tanggalInput" type="text" inputmode="numeric" maxlength="2" placeholder="1-31" value="${draft.tanggal||''}"
+          oninput="this.value=digitsOnly(this.value)">
+      </div>
+      <div class="field">
+        <label>Bulan</label>
+        <select id="bulanSelect"><option value="">Pilih bulan</option>${bulanOpts}</select>
+      </div>
+      <div class="field-error" id="tanggalError"></div>
+      <button class="primary-btn" onclick="submitTanggal()">Masukkan Keterangan</button>
+    </div>
+  `;
+}
+
+function screenPengeluaranKeterangan(){
+  const kategoriOpts = KATEGORI_LIST.map(k=>`<option value="${k.value}" ${draft.kategori===k.value?'selected':''}>${k.label}</option>`).join('');
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('pengeluaranTanggal')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Pengeluaran</h2>
+      <p class="step-label">Langkah 2 dari 3 &middot; Keterangan &amp; Kategori</p>
+      <div class="field">
+        <label>Keterangan</label>
+        <input id="keteranganInput" type="text" placeholder="Contoh: Belanja dapur" maxlength="120" value="${draft.keterangan||''}"
+          onkeydown="if(event.key==='Enter') submitKeterangan()">
+      </div>
+      <div class="field">
+        <label>Kategori</label>
+        <select id="kategoriSelect"><option value="">Pilih kategori</option>${kategoriOpts}</select>
+      </div>
+      <div class="field-error" id="keteranganError"></div>
+      <button class="primary-btn" onclick="submitKeterangan()">Masukkan Nominal Pengeluaran</button>
+    </div>
+  `;
+}
+
+function screenPengeluaranNominal(){
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('pengeluaranKeterangan')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Pengeluaran</h2>
+      <p class="step-label">Langkah 3 dari 3 &middot; Nominal</p>
+      <div class="field">
+        <label>Nominal Pengeluaran (Rp)</label>
+        <input id="nominalInput" type="text" inputmode="numeric" placeholder="0"
+          oninput="formatCurrencyInput(this)"
+          onkeydown="if(event.key==='Enter') submitNominal()">
+        <div class="field-error" id="nominalError"></div>
+      </div>
+      <button class="primary-btn" onclick="submitNominal()">Simpan Pengeluaran</button>
+    </div>
+  `;
+}
+
+function screenPengeluaranSelesai(){
+  const last = rows[rows.length-1];
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <h2 class="screen-title">Pengeluaran Tersimpan</h2>
+      <div class="confirm-card">
+        <p class="confirm-date">${last.hari}, ${last.tanggal} ${last.bulan}</p>
+        <p class="confirm-ket">${last.keterangan} <span class="kategori-badge ${last.kategori}">${kategoriLabel(last.kategori)}</span></p>
+        <p class="confirm-amount">&minus; ${formatRupiah(last.nominal)}</p>
+        <p class="confirm-saldo">Saldo sekarang: ${formatRupiah(currentSaldo())}</p>
+      </div>
+      <button class="primary-btn" onclick="goTo('main')">Kembali ke Halaman Utama</button>
+      <button class="secondary-btn" onclick="goTo('perincian')">Perincian Dana</button>
+    </div>
+  `;
+}
+
+function screenKeperluanKeterangan(){
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('main')">&lsaquo; Menu Utama</button></div>
+      <h2 class="screen-title">Barang yang Perlu Dibeli</h2>
+      <p class="step-label">Langkah 1 dari 3 &middot; Keterangan</p>
+      <div class="field">
+        <label>Keperluan</label>
+        <input id="keperluanKetInput" type="text" placeholder="Contoh: Ganti oli motor" maxlength="120" value="${draftKeperluan.keterangan||''}"
+          onkeydown="if(event.key==='Enter') submitKeperluanKeterangan()">
+        <div class="field-error" id="keperluanKetError"></div>
+      </div>
+      <button class="primary-btn" onclick="submitKeperluanKeterangan()">Masukkan Nominal Biaya</button>
+    </div>
+  `;
+}
+
+function screenKeperluanNominal(){
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('keperluanKeterangan')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Barang yang Perlu Dibeli</h2>
+      <p class="step-label">Langkah 2 dari 3 &middot; Nominal</p>
+      <div class="field">
+        <label>Perkiraan Biaya (Rp)</label>
+        <input id="keperluanNominalInput" type="text" inputmode="numeric" placeholder="0"
+          oninput="formatCurrencyInput(this)"
+          onkeydown="if(event.key==='Enter') submitKeperluanNominal()">
+        <div class="field-error" id="keperluanNominalError"></div>
+      </div>
+      <button class="primary-btn" onclick="submitKeperluanNominal()">Pilih Bulan Pembelian</button>
+    </div>
+  `;
+}
+
+function screenKeperluanBulan(){
+  const bulanOpts = BULAN_LIST.map(b=>`<option value="${b}" ${draftKeperluan.bulan===b?'selected':''}>${b}</option>`).join('');
+  const tahunOpts = getTahunOptions().map(y=>`<option value="${y}" ${Number(draftKeperluan.tahun)===y?'selected':''}>${y}</option>`).join('');
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('keperluanNominal')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Barang yang Perlu Dibeli</h2>
+      <p class="step-label">Langkah 3 dari 3 &middot; Bulan Pembelian</p>
+      <div class="field">
+        <label>Bulan</label>
+        <select id="keperluanBulanSelect"><option value="">Pilih bulan</option>${bulanOpts}</select>
+      </div>
+      <div class="field">
+        <label>Tahun</label>
+        <select id="keperluanTahunSelect"><option value="">Pilih tahun</option>${tahunOpts}</select>
+      </div>
+      <div class="field-error" id="keperluanBulanError"></div>
+      <button class="primary-btn" onclick="submitKeperluanBulan()">Simpan Rencana</button>
+    </div>
+  `;
+}
+
+function screenKeperluanSelesai(){
+  const last = keperluan[keperluan.length-1];
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <h2 class="screen-title">Rencana Tersimpan</h2>
+      <div class="confirm-card">
+        <p class="confirm-date">Rencana pembelian: ${last.bulan} ${last.tahun}</p>
+        <p class="confirm-ket">${last.keterangan}</p>
+        <p class="confirm-amount">${formatRupiah(last.nominal)}</p>
+      </div>
+      <button class="primary-btn" onclick="goTo('listKeperluan')">Lihat List Keperluan</button>
+      <button class="secondary-btn" onclick="goTo('main')">Kembali ke Halaman Utama</button>
+    </div>
+  `;
+}
+
+function screenListKeperluan(){
+  let body;
+  if(keperluan.length===0){
+    body = `<div class="empty-state">Belum ada rencana keperluan. Tambahkan lewat menu "Barang yang Perlu Dibeli".</div>`;
+  }else{
+    const t = getTodayInfo();
+    const items = keperluan.map(k=>{
+      const isDue = (k.bulan===t.bulan && Number(k.tahun)===t.tahun);
+      return `
+        <div class="keperluan-item ${isDue?'due':''}">
+          <p class="keperluan-ket">${k.keterangan}</p>
+          <p class="keperluan-meta">${k.bulan} ${k.tahun} &middot; ${formatRupiah(k.nominal)}</p>
+          ${isDue ? '<p class="keperluan-flag">Keperluan bulan ini!</p>' : ''}
+          <div class="keperluan-actions">
+            <button class="beli-btn" onclick="beliKeperluan('${k.id}')">Beli</button>
+            <button class="ics-btn" onclick="downloadICS('${k.id}')">+ Kalender</button>
+            <button class="ics-btn" onclick="editKeperluan('${k.id}')">Edit</button>
+            <button class="hapus-btn" onclick="hapusKeperluan('${k.id}')">Hapus</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    body = `<div class="keperluan-list">${items}</div>`;
+  }
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('main')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">List Keperluan</h2>
+      <p class="screen-desc">Rencana pembelian yang belum direalisasikan. Tekan "Beli" untuk mencatatnya sebagai pengeluaran dan memotong saldo.</p>
+      ${body}
+    </div>
+  `;
+}
+
+function screenEditRow(){
+  const row = rows.find(r=>r.id===editingRowId);
+  if(!row){
+    return `
+      <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+      <div class="page-content">
+        <div class="empty-state">Baris tidak ditemukan.</div>
+        <button class="primary-btn" onclick="goTo('perincian')">Kembali ke Perincian Dana</button>
+      </div>
+    `;
+  }
+  if(row.tipe==='saldo'){
+    return `
+      <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+      <div class="page-content">
+        <div class="screen-header"><button class="back-link" onclick="goTo('perincian')">&lsaquo; Kembali</button></div>
+        <h2 class="screen-title">Edit Isi Saldo</h2>
+        <p class="screen-desc">Ubah nominal pengisian saldo ini. Saldo berjalan akan dihitung ulang otomatis.</p>
+        <div class="field">
+          <label>Nominal (Rp)</label>
+          <input id="editRowNominalInput" type="text" inputmode="numeric" value="${new Intl.NumberFormat('id-ID').format(row.nominal)}" data-raw="${row.nominal}"
+            oninput="formatCurrencyInput(this)"
+            onkeydown="if(event.key==='Enter') submitEditRow()">
+          <div class="field-error" id="editRowError"></div>
+        </div>
+        <button class="primary-btn" onclick="submitEditRow()">Simpan Perubahan</button>
+      </div>
+    `;
+  }
+  const hariOpts = HARI_LIST.map(h=>`<option value="${h}" ${row.hari===h?'selected':''}>${h}</option>`).join('');
+  const bulanOpts = BULAN_LIST.map(b=>`<option value="${b}" ${row.bulan===b?'selected':''}>${b}</option>`).join('');
+  const kategoriOpts = KATEGORI_LIST.map(k=>`<option value="${k.value}" ${row.kategori===k.value?'selected':''}>${k.label}</option>`).join('');
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('perincian')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Edit Pengeluaran</h2>
+      <p class="screen-desc">Ubah detail pengeluaran ini. Saldo berjalan akan dihitung ulang otomatis.</p>
+      <div class="field">
+        <label>Hari</label>
+        <select id="editRowHariSelect"><option value="">Pilih hari</option>${hariOpts}</select>
+      </div>
+      <div class="field">
+        <label>Tanggal</label>
+        <input id="editRowTanggalInput" type="text" inputmode="numeric" maxlength="2" value="${row.tanggal||''}" oninput="this.value=digitsOnly(this.value)">
+      </div>
+      <div class="field">
+        <label>Bulan</label>
+        <select id="editRowBulanSelect"><option value="">Pilih bulan</option>${bulanOpts}</select>
+      </div>
+      <div class="field">
+        <label>Keterangan</label>
+        <input id="editRowKeteranganInput" type="text" maxlength="120" value="${row.keterangan||''}">
+      </div>
+      <div class="field">
+        <label>Kategori</label>
+        <select id="editRowKategoriSelect"><option value="">Pilih kategori</option>${kategoriOpts}</select>
+      </div>
+      <div class="field">
+        <label>Nominal (Rp)</label>
+        <input id="editRowNominalInput" type="text" inputmode="numeric" value="${new Intl.NumberFormat('id-ID').format(row.nominal)}" data-raw="${row.nominal}"
+          oninput="formatCurrencyInput(this)">
+      </div>
+      <div class="field-error" id="editRowError"></div>
+      <button class="primary-btn" onclick="submitEditRow()">Simpan Perubahan</button>
+    </div>
+  `;
+}
+
+function screenEditKeperluan(){
+  const item = keperluan.find(k=>k.id===editingKeperluanId);
+  if(!item){
+    return `
+      <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+      <div class="page-content">
+        <div class="empty-state">Rencana keperluan tidak ditemukan.</div>
+        <button class="primary-btn" onclick="goTo('listKeperluan')">Kembali ke List Keperluan</button>
+      </div>
+    `;
+  }
+  const bulanOpts = BULAN_LIST.map(b=>`<option value="${b}" ${item.bulan===b?'selected':''}>${b}</option>`).join('');
+  const tahunOpts = getTahunOptions().map(y=>`<option value="${y}" ${Number(item.tahun)===y?'selected':''}>${y}</option>`).join('');
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('listKeperluan')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Edit Keperluan</h2>
+      <p class="screen-desc">Ubah detail rencana pembelian ini.</p>
+      <div class="field">
+        <label>Keperluan</label>
+        <input id="editKeperluanKetInput" type="text" maxlength="120" value="${item.keterangan||''}">
+      </div>
+      <div class="field">
+        <label>Perkiraan Biaya (Rp)</label>
+        <input id="editKeperluanNominalInput" type="text" inputmode="numeric" value="${new Intl.NumberFormat('id-ID').format(item.nominal)}" data-raw="${item.nominal}"
+          oninput="formatCurrencyInput(this)">
+      </div>
+      <div class="field">
+        <label>Bulan</label>
+        <select id="editKeperluanBulanSelect"><option value="">Pilih bulan</option>${bulanOpts}</select>
+      </div>
+      <div class="field">
+        <label>Tahun</label>
+        <select id="editKeperluanTahunSelect"><option value="">Pilih tahun</option>${tahunOpts}</select>
+      </div>
+      <div class="field-error" id="editKeperluanError"></div>
+      <button class="primary-btn" onclick="submitEditKeperluan()">Simpan Perubahan</button>
+    </div>
+  `;
+}
+
+function screenAlokasiDana(){
+  if(!alokasiBulan){
+    alokasiBulan = getTodayInfo().bulan;
+  }
+  const totals = computeAlokasiTotals(alokasiBulan);
+  const grandTotal = totals.jajan + totals.transportasi + totals.keperluan + totals.makanan_utama;
+  const bulanOpts = BULAN_LIST.map(b=>`<option value="${b}" ${alokasiBulan===b?'selected':''}>${b}</option>`).join('');
+
+  const catMeta = [
+    { key:'jajan', label:'Jajan', color:'var(--cat-jajan)' },
+    { key:'transportasi', label:'Transportasi', color:'var(--cat-transportasi)' },
+    { key:'keperluan', label:'Keperluan', color:'var(--cat-keperluan)' },
+    { key:'makanan_utama', label:'Makanan Utama', color:'var(--cat-makanan)' }
+  ];
+
+  let pieStyle, pieCenter, legendHtml;
+  if(grandTotal<=0){
+    pieStyle = 'background:var(--paper-line);';
+    pieCenter = `<span></span><strong>Belum ada data</strong>`;
+    legendHtml = `<div class="empty-state">Belum ada pengeluaran atau rencana keperluan pada bulan ${alokasiBulan}.</div>`;
+  }else{
+    let cursor = 0;
+    const stops = [];
+    catMeta.forEach(c=>{
+      const val = totals[c.key];
+      if(val<=0) return;
+      const pct = (val/grandTotal)*100;
+      const start = cursor;
+      const end = cursor + pct;
+      stops.push(`${c.color} ${start}% ${end}%`);
+      cursor = end;
+    });
+    pieStyle = `background: conic-gradient(${stops.join(', ')});`;
+    pieCenter = `<small>Total</small><strong>${formatRupiah(grandTotal)}</strong>`;
+    legendHtml = `
+      <div class="alokasi-legend">
+        ${catMeta.map(c=>{
+          const val = totals[c.key];
+          const pct = grandTotal>0 ? ((val/grandTotal)*100).toFixed(1) : '0.0';
+          return `
+            <div class="alokasi-item">
+              <div class="alokasi-item-label">
+                <span class="alokasi-dot" style="background:${c.color};"></span>
+                <span class="alokasi-item-name">${c.label}</span>
+              </div>
+              <div class="alokasi-item-values">
+                <div class="alokasi-item-nominal">${formatRupiah(val)}</div>
+                <div class="alokasi-item-pct">${pct}%</div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('main')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Alokasi Dana</h2>
+      <p class="screen-desc">Gabungan pengeluaran per kategori, dipisahkan per bulan.</p>
+      <div class="field bulan-select-wrap">
+        <label>Pilih Bulan</label>
+        <select id="alokasiBulanSelect" onchange="alokasiBulan=this.value; goTo('alokasiDana')">${bulanOpts}</select>
+      </div>
+      <div class="pie-wrap">
+        <div class="pie-chart" style="${pieStyle}">
+          <div class="pie-total">${pieCenter}</div>
+        </div>
+      </div>
+      ${legendHtml}
+      <p class="alokasi-note">Kategori "Keperluan" bertambah saat Anda menekan tombol "Beli" pada List Keperluan (saldo berkurang dan item hilang dari List Keperluan), atau saat Anda mencatat pengeluaran manual dengan kategori "Keperluan". Bulan yang dipakai mengikuti bulan rencana pembelian keperluan tersebut.</p>
+    </div>
+  `;
+}
+
+function screenPerincian(){
+  const hasData = rows.length>0 || keperluan.length>0;
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('main')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Perincian Dana</h2>
+      <p class="screen-desc">Semua riwayat isi saldo, pengeluaran, dan rencana keperluan yang belum dibeli.</p>
+      <div class="ledger-legend">
+        <span><i class="dot-saldo"></i> Isi Saldo</span>
+        <span><i class="dot-pengeluaran"></i> Pengeluaran</span>
+        <span><i class="dot-keperluan"></i> List Keperluan</span>
+      </div>
+      ${hasData ? `
+      <div class="search-field">
+        <input type="text" placeholder="Cari transaksi berdasarkan keterangan, kategori, atau bulan..." value="${perincianSearchQuery}" oninput="onPerincianSearch(this.value)">
+      </div>` : ''}
+      <div id="perincianTableContainer"></div>
+      <button class="primary-btn" onclick="goTo('main')" style="margin-top:18px;">Kembali</button>
+      <div class="table-footer">
+        ${hasData ? `<button class="reset-link" onclick="resetData()">Hapus semua data</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function screenLoading(){
+  return `<div class="page-content"><p class="screen-desc">Memuat data&hellip;</p></div>`;
+}
+
+function render(){
+  const app = document.getElementById('app');
+  if(!ready){ app.innerHTML = screenLoading(); return; }
+  switch(screen){
+    case 'main': app.innerHTML = screenMain(); break;
+    case 'isiSaldo': app.innerHTML = screenIsiSaldo(); break;
+    case 'pengeluaranTanggal': app.innerHTML = screenPengeluaranTanggal(); break;
+    case 'pengeluaranKeterangan': app.innerHTML = screenPengeluaranKeterangan(); break;
+    case 'pengeluaranNominal': app.innerHTML = screenPengeluaranNominal(); break;
+    case 'pengeluaranSelesai': app.innerHTML = screenPengeluaranSelesai(); break;
+    case 'keperluanKeterangan': app.innerHTML = screenKeperluanKeterangan(); break;
+    case 'keperluanNominal': app.innerHTML = screenKeperluanNominal(); break;
+    case 'keperluanBulan': app.innerHTML = screenKeperluanBulan(); break;
+    case 'keperluanSelesai': app.innerHTML = screenKeperluanSelesai(); break;
+    case 'listKeperluan': app.innerHTML = screenListKeperluan(); break;
+    case 'editKeperluan': app.innerHTML = screenEditKeperluan(); break;
+    case 'perincian': app.innerHTML = screenPerincian(); break;
+    case 'editRow': app.innerHTML = screenEditRow(); break;
+    case 'alokasiDana': app.innerHTML = screenAlokasiDana(); break;
+    default: app.innerHTML = screenMain();
+  }
+  if(screen==='perincian') renderPerincianTable();
+}
+
+(async function init(){
+  render();
+  await loadRows();
+  await loadKeperluan();
+  migrateData();
+  ready = true;
+  screen = 'main';
+  render();
+  checkMonthlyNotification();
+})();
+</script>
+</body>
+</html>
